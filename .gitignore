@@ -33,3 +33,6 @@
 
 # Logs
 log_*
+
+#Temporary Files
+*~
