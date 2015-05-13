@@ -26,7 +26,9 @@ void printTable(){
 }
 
 void message(int player,char* msg){
-	int n = send(player,msg,BUFF_SIZE,0);
+	char buff[BUFF_SIZE];
+	strcpy(buff,msg);
+	int n = send(player,buff,BUFF_SIZE,0);
 }
 
 void clearbuff(char* buff){
@@ -46,105 +48,45 @@ void help(){
 int gameStatus = -1;
 
 int newGame(const int address, const int id){
-	while(1){
-		//printf("newgame\n");
-		char inBuff[BUFF_SIZE];
-		char outBuff[BUFF_SIZE];
+	
+	turn(address);
 
-		int n;
-		//printf("Waiting for opponent!\n");
-		n = recv(address, inBuff, BUFF_SIZE-1,MSG_WAITALL);
-		//printf("trace1\n");
-		if (n<=0){
-        	error();
-    	}
-
-		gameStatus = atoi(inBuff);
-
-		strcpy(outBuff,ACK);
-		n = send(address,outBuff,BUFF_SIZE,0);
-		if (n<=0){
-        	error();
-    	}
-
-		if (gameStatus == PLAYER_ONE_WON ){
-			
-			if (id == 1){
-				return 1;
-			}
-			else{
-				return 0;
-			}
-		}
-
-		if (gameStatus == PLAYER_TWO_WON){
-			if (id == 3){
-				return 1;
-			}else{
-				return 0;
-			}
-		}
-
-		strcpy(outBuff,ACK);
-		n = recv(address,inBuff,BUFF_SIZE,MSG_WAITALL);
-		if (n<=0){
-			error();
-		}
-		table.a = atoi(inBuff);
-		n = send(address,outBuff,BUFF_SIZE,0);
-		if (n<=0){
-			error();
-		}
-		printf("%s",inBuff);
-
-		n = recv(address,inBuff,BUFF_SIZE,MSG_WAITALL);
-		if (n<=0){
-			error();
-		}
-		table.b = atoi(inBuff);
-		n = send(address,outBuff,BUFF_SIZE,0);
-		if (n<=0){
-			error();
-		}
-		printf("%s",inBuff);
-
-		n = recv(address,inBuff,BUFF_SIZE,MSG_WAITALL);
-		if (n<=0){
-			error();
-		}
-		table.c = atoi(inBuff);
-		n = send(address,outBuff,BUFF_SIZE,0);
-		if (n<=0){
-			error();
-		}
-		printf("%s",inBuff);
-
-		printTable(); 
-		if (id == gameStatus){
-			printTable();
-			do{
-				scanf("%s",outBuff);
-				//printf("trace4\n");
-				n = send(address,outBuff,BUFF_SIZE,0);
-				if (n<=0){
-					printf("send: %d",n);
-					error();
-				}
-
-				n = recv(address,inBuff,BUFF_SIZE,MSG_WAITALL);
-				if (n<=0){
-					printf("recv: %d",n);
-					error();
-				}
-
-			}while(strcmp(inBuff,REJ) == 0);
-
-		}
-
-
-
-	}
 }
+
+void turn(const int address){
+
+	char inBuff[BUFF_SIZE];
+	char outBuff[BUFF_SIZE];
+	int n;
+
+	n = recv(address,inBuff,BUFF_SIZE,MSG_WAITALL);
+
+	gameStatus = atoi(inBuff);
+
+	message(address,ACK);
+
+	n = recv(address,inBuff,BUFF_SIZE,MSG_WAITALL);
+
+	table.a = inBuff[1];
+	table.b = inBuff[2];
+	table.c = inBuff[3];
+
+	printTable();
+	int isValid = 0;
+	do{
+		printf("TE GYÜSSZ:");
+		scanf("%s",outBuff);
+
+		message(address,outBuff);
+
+		n = recv(address,inBuff,BUFF_SIZE,MSG_WAITALL);
+
+		if (strcmp(ACK,inBuff) == 0){
+			isValid = 1;
+		}
+
+	}while(!isValid);
+};
 
 int main(int argc, char** argv){
 	if (argc<3){
@@ -172,17 +114,12 @@ int main(int argc, char** argv){
 	if (id == 1 ){
 		printf("You are Player ONE\n");
 		printf("Waiting for Player TWO to connect\n");
-		clearbuff(buff);
-		strcpy(buff,ACK);
-		message(socketDescriptor,buff);
+		message(socketDescriptor,ACK);
 		n = recv(socketDescriptor,buff,BUFF_SIZE,MSG_WAITALL);
-		strcpy(buff,ACK);
-		n = send(socketDescriptor,buff,BUFF_SIZE,0);
+		message(socketDescriptor,ACK);
 	}else{
 		printf("You are Player TWO\n");
-		clearbuff(buff);
-		strcpy(buff,ACK);
-		message(socketDescriptor,buff);
+		message(socketDescriptor,ACK);
 	}
 
 	if (n<=0){
