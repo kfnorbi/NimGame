@@ -46,7 +46,7 @@ void help(){
 	printf("\n");
 }
 
-int processend(const int address){
+void processend(const int address){
 
 	int n;
 	char buff[BUFF_SIZE];
@@ -57,8 +57,6 @@ int processend(const int address){
 	fgets(buff,BUFF_SIZE,stdin);
 
 	message(address,buff);
-
-	return 0;
 }
 
 int validate(char* msg){
