@@ -16,6 +16,8 @@ struct{
 	int c;
 }table;
 
+int opp_id;
+
 void error(){
 	fprintf(stderr,"%s\n",strerror(errno));
 	exit(1);
@@ -27,6 +29,7 @@ void printTable(){
 
 void message(int player,char* msg){
 	char buff[BUFF_SIZE];
+	clearbuff(buff);
 	strcpy(buff,msg);
 	int n = send(player,buff,BUFF_SIZE,0);
 }
@@ -49,43 +52,43 @@ int gameStatus = -1;
 
 int newGame(const int address, const int id){
 	
-	turn(address);
+	
+	while (1){
+		int n;
+		char buff[BUFF_SIZE];
+
+		n =recv(address,buff,BUFF_SIZE,MSG_WAITALL);
+		gameStatus = atoi(buff);
+		message(address,ACK);
+
+		if (gameStatus == WAITING_FOR_PLAYER_TWO_MOVE){
+			if (id == 3){
+				turn(address);
+			}
+		}
+		else{
+			if (gameStatus == WAITING_FOR_PLAYER_ONE_MOVE){
+				if(id == 4){
+					turn(address);
+				}
+			}
+		}
+	}
 
 }
 
 void turn(const int address){
-
-	char inBuff[BUFF_SIZE];
-	char outBuff[BUFF_SIZE];
 	int n;
+	char buff[BUFF_SIZE];
 
-	n = recv(address,inBuff,BUFF_SIZE,MSG_WAITALL);
-
-	gameStatus = atoi(inBuff);
-
-	message(address,ACK);
-
-	n = recv(address,inBuff,BUFF_SIZE,MSG_WAITALL);
-
-	table.a = inBuff[1];
-	table.b = inBuff[2];
-	table.c = inBuff[3];
-
+	n = recv(address,buff,BUFF_SIZE,MSG_WAITALL);
+	table.a = buff[0];
+	table.b = buff[1];
+	table.c = buff[2];
 	printTable();
-	int isValid = 0;
-	do{
-		printf("TE GYÜSSZ:");
-		scanf("%s",outBuff);
-
-		message(address,outBuff);
-
-		n = recv(address,inBuff,BUFF_SIZE,MSG_WAITALL);
-
-		if (strcmp(ACK,inBuff) == 0){
-			isValid = 1;
-		}
-
-	}while(!isValid);
+	printf(">");
+	scanf("%d",&n);
+	message(address,buff);
 };
 
 int main(int argc, char** argv){
@@ -109,15 +112,16 @@ int main(int argc, char** argv){
 		error();
 	}
 
-	int n = recv(socketDescriptor,buff,BUFF_SIZE-1,MSG_WAITALL);
+	int n = recv(socketDescriptor,buff,BUFF_SIZE,MSG_WAITALL);
 	const int id = atoi(buff);
-	if (id == 1 ){
+	printf("id: %d\n",id);
+	if (id == WAITING_FOR_PLAYER_TWO_MOVE ){
 		printf("You are Player ONE\n");
+		opp_id = WAITING_FOR_PLAYER_ONE_MOVE;
 		printf("Waiting for Player TWO to connect\n");
 		message(socketDescriptor,ACK);
-		n = recv(socketDescriptor,buff,BUFF_SIZE,MSG_WAITALL);
-		message(socketDescriptor,ACK);
 	}else{
+		opp_id = WAITING_FOR_PLAYER_TWO_MOVE;
 		printf("You are Player TWO\n");
 		message(socketDescriptor,ACK);
 	}

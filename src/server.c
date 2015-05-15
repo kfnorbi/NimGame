@@ -26,7 +26,6 @@ FILE* log;
 int p1;
 int p2;
 
-
 void init (){
     table.a = A_SET_SIZE;
     table.b = B_SET_SIZE;
@@ -39,7 +38,7 @@ void init (){
     timeinfo = localtime ( &rawtime );
     strftime(buff,BUFF_SIZE,"log_%Y%m%d%H%M%S",timeinfo);
     log = fopen(buff,"w");
-    clearbuff(buff,BUFF_SIZE);
+    clearbuff(buff);
 
 
 }
@@ -49,19 +48,19 @@ void error(){
     exit(errno);
 };
 
-void clearbuff(char* buff,int length){
-    memset(buff,'\0',length);
+void clearbuff(char* buff){
+    memset(buff,'\0',BUFF_SIZE);
 }
 
 void sendGameStatus(int player){
         char buff[BUFF_SIZE];
-        clearbuff(buff,BUFF_SIZE);
-        sprintf(buff, "%d", gameStatus);
+        sprintf(buff,"%d",gameStatus);
         int bytes = send(player,buff,BUFF_SIZE,0);
 }
 
 void message(int player,char* msg){
     char buff[BUFF_SIZE];
+    clearbuff(buff);
     strcpy(buff,msg);
     int bytes = send(player,buff,BUFF_SIZE,0);
 }
@@ -97,54 +96,12 @@ int validate(char* msg){
 
 void sendTable(int socket){
     char buff[BUFF_SIZE];
-    clearbuff(buff,BUFF_SIZE);
+    clearbuff(buff);
     buff[0] = table.a;
     buff[1] = table.b;
     buff[2] = table.c;
     message(socket,buff);   
 }
-
-int processEnd(int player){
-    //TODO
-};
-
-void processTurn(int player, struct sockaddr_in playerdata){
-    int n;
-    char inBuff[BUFF_SIZE];
-    char outBuff[BUFF_SIZE];
-
-    sendGameStatus(player);
-
-    n = recv(player,inBuff,BUFF_SIZE,MSG_WAITALL);
-
-    if (strcmp(ACK,inBuff) != 0){
-        error();
-    }
-
-
-    sendTable(player);
-
-    
-
-    int isValid = 0;
-    do{
-        printf("kredenc1\n");
-        n = recv(player,inBuff,BUFF_SIZE,MSG_WAITALL);
-        printf("%s",inBuff);
-        printf("kredenc2\n");
-        if (validate(inBuff) != 0){
-            isValid = 1;
-            message(player,ACK);
-        }
-        else{
-            message(player,REJ);
-        }
-
-        //TODO üzenet lekezelése
-
-    }while(!isValid);
-
-};
 
 void logging(char* msg,struct sockaddr_in player){
     time_t rawtime;
@@ -160,11 +117,42 @@ void logging(char* msg,struct sockaddr_in player){
     
 }
 
-void newGame(const int playerOne,const int playerTwo, const struct sockaddr_in player1,const struct sockaddr_in player2){
-//printf("newgame\n");
-    processTurn(playerOne,player1);
-    processTurn(playerTwo,player2);
+void turn(int address){
+    int n;
+    char buff[BUFF_SIZE];
+    sendTable(address);
 
+    n = recv(address,buff,BUFF_SIZE,MSG_WAITALL);
+
+    printf("%s",buff);
+
+};
+
+void newGame(const int playerOne,const int playerTwo, const struct sockaddr_in player1,const struct sockaddr_in player2){
+    while (1){
+        int n;
+        char buff[BUFF_SIZE];
+
+
+        sendGameStatus(playerOne);
+        sendGameStatus(playerTwo);
+        n = recv(playerOne,buff,BUFF_SIZE,MSG_WAITALL);
+        n = recv(playerTwo,buff,BUFF_SIZE,MSG_WAITALL);
+        clearbuff(buff);
+
+        switch (gameStatus){
+            case WAITING_FOR_PLAYER_ONE_MOVE:
+                turn(playerOne);
+                gameStatus = WAITING_FOR_PLAYER_TWO_MOVE;
+                break;
+            case WAITING_FOR_PLAYER_TWO_MOVE:
+                turn(playerTwo);
+                gameStatus = WAITING_FOR_PLAYER_ONE_MOVE;
+                break;
+            
+        };
+
+   }
 }
 
 int main(int argc, char** argv) {
@@ -179,7 +167,7 @@ int main(int argc, char** argv) {
     struct sockaddr_in player1;
     struct sockaddr_in player2;
     
-    char buffer[BUFF_SIZE];
+    char buff[BUFF_SIZE];
 
     int socketDescriptor = socket(AF_INET,SOCK_STREAM,0);
     
@@ -203,7 +191,6 @@ int main(int argc, char** argv) {
     }
     printf("Server is ready, waiting for players\n");
     int playerOne;
-    do{
 
         int addrlen = sizeof(struct sockaddr_in);
         playerOne = accept(socketDescriptor, (struct sockaddr *)&player1, &addrlen);
@@ -212,12 +199,9 @@ int main(int argc, char** argv) {
             error();
         }  
 
-        gameStatus = WAITING_FOR_PLAYER_TWO;
+        gameStatus = WAITING_FOR_PLAYER_TWO_MOVE;
         sendGameStatus(playerOne);
-        int n = recv(playerOne,buffer,BUFF_SIZE,MSG_WAITALL);
-
-
-    }while(strcmp(ACK,buffer) != 0);
+        int n = recv(playerOne,buff,BUFF_SIZE,MSG_WAITALL);
 
     logging("player 1 connected",player1);
     printf("Player ONE connected\n");
@@ -225,11 +209,9 @@ int main(int argc, char** argv) {
 
     int playerTwo;
 
-    clearbuff(buffer,BUFF_SIZE);    
+    clearbuff(buff);    
 
-    do{
-
-        int addrlen = sizeof(struct sockaddr_in);
+        addrlen = sizeof(struct sockaddr_in);
         playerTwo = accept(socketDescriptor,(struct sockaddr*)&player2,&addrlen);
         if (playerTwo == -1){
             error();
@@ -238,14 +220,10 @@ int main(int argc, char** argv) {
         gameStatus = WAITING_FOR_PLAYER_ONE_MOVE;
         sendGameStatus(playerTwo);
 
-        int n = recv(playerTwo,buffer,BUFF_SIZE,MSG_WAITALL);
+        n = recv(playerTwo,buff,BUFF_SIZE,MSG_WAITALL);
 
-    }while(strcmp(ACK,buffer) != 0);
 
-    clearbuff(buffer,BUFF_SIZE);
-
-    message(playerOne,ACK);
-    ///printf("%n",n);
+    clearbuff(buff);
 
     printf("Player TWO connected\n");
     logging("player 2 connected",player2);
