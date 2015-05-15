@@ -1,1 +1,12 @@
-This is a simple table game. http://en.wikipedia.org/wiki/Nim
+This is a simple table game. In each turn you have to remove at least 1 beans
+from a bowl,  but you can remove as much as you want. Your goal is not to
+remove the last bean from the table.
+http://en.wikipedia.org/wiki/Nim
+
+This game is made by Norbert Kovács-Ferenc as a project of the University of Debrecen Faculty of Informatics.
+
+@@ use:
+ sor [A|B|C] N - remove N beans from the bowl specified @
+ table - reprints the table @
+ feladom - surrenders the game @
+ help - shows this help

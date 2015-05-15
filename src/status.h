@@ -2,6 +2,8 @@
 
 #define WAITING_FOR_PLAYER_TWO 1
 
+#define QUIT 2
+
 #define WAITING_FOR_PLAYER_ONE_MOVE 3
 
 #define WAITING_FOR_PLAYER_TWO_MOVE 4
@@ -14,8 +16,12 @@
 #define B_SET_SIZE 4
 #define C_SET_SIZE 5
 
+#define DIFF 1
+
 #define ACK "ok"
 
 #define REJ "notcool"
 
 #define HELP_FILE "resources/help_en"
+
+#define DELIMITER "#####################"
