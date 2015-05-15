@@ -89,7 +89,7 @@ int newGame(const int address, const int id){
 		n =recv(address,buff,BUFF_SIZE,MSG_WAITALL);
 		gameStatus = atoi(buff);
 		message(address,ACK);
-
+		//printf("%d\n",gameStatus);
 
 		switch (gameStatus){
 			case WAITING_FOR_PLAYER_ONE_MOVE:
@@ -132,7 +132,7 @@ int newGame(const int address, const int id){
 		};
 
 	}
-	printf("Exiting....");
+	printf("Exiting....\n");
 }
 
 void turn(const int address){

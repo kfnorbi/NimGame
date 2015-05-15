@@ -163,9 +163,6 @@ void quit(int signal){
     close(socket);
     fclose(log);
     printf("Server exiting...\n");
-    gameStatus=QUIT;
-    sendGameStatus(second);
-    sendGameStatus(first);
     exit(signal);
 }
 
@@ -213,11 +210,11 @@ void newGame(const int playerOne,const int playerTwo, const struct sockaddr_in p
                     init();
                     gameStatus = WAITING_FOR_PLAYER_ONE_MOVE;
                 }else{
-                    quit(0);
+                    gameStatus = QUIT;
                 }
                 break;
             case QUIT:
-                //printf("Server shut down. Exiting...\n");
+                quit(0);
                 return;
         };
 
