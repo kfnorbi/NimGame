@@ -7,6 +7,5 @@ This game is made by Norbert Kovács-Ferenc as a project of the University of De
 
 @@ use:
  sor [A|B|C] N - remove N beans from the bowl specified @
- table - reprints the table @
  feladom - surrenders the game @
  help - shows this help

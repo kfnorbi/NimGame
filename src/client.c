@@ -69,9 +69,6 @@ int validate(char* msg){
 	if (strcmp(msg,"sor")>0){
 		return 2;
 	}
-	if (strcmp(msg,"tabla\n") == 0){
-		return -2;
-	}
 	return 0;
 }
 
@@ -154,10 +151,6 @@ void turn(const int address){
 			val = 0;
 		}
 
-		if (val == -2){
-			printTable();
-		}
-	
 	}while(val<=0);
 
 	message(address,buff);
@@ -166,7 +159,7 @@ void turn(const int address){
 
 int main(int argc, char** argv){
 	if (argc<3){
-		fprintf(stderr,"Invalid usage\n");
+		fprintf(stderr,"Usage: %s ip_address port\n",argv[0]);
 		exit(1);
 	}
 

@@ -219,7 +219,7 @@ void newGame(const int playerOne,const int playerTwo, const struct sockaddr_in p
         };
 
         if (checkForTable()){
-            gameStatus = WAITING_FOR_PLAYER_TWO_MOVE == gameStatus ? PLAYER_TWO_WON: PLAYER_ONE_WON;
+            gameStatus = WAITING_FOR_PLAYER_ONE_MOVE == gameStatus ? PLAYER_TWO_WON: PLAYER_ONE_WON;
         }
 
    }
@@ -231,7 +231,7 @@ int main(int argc, char** argv) {
 
     init();
     if (argc < 2){
-        fprintf(stderr,"Invalid usage\n");
+        fprintf(stderr,"Usage: %s port\n",argv[0]);
         exit(1);
     }
     
